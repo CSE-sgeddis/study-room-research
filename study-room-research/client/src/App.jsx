@@ -1,122 +1,121 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState("2");
+  const [capacity, setCapacity] = useState("");
+  const [rooms, setRooms] = useState([]);
+
+  const searchRooms = (event) => {
+    event.preventDefault();
+
+    const sampleRooms = [
+      {
+        id: 1,
+        roomNumber: "101",
+        location: "Main Library",
+        capacity: 4,
+      },
+      {
+        id: 2,
+        roomNumber: "102",
+        location: "Main Library",
+        capacity: 6,
+      },
+      {
+        id: 3,
+        roomNumber: "201",
+        location: "Science Library",
+        capacity: 8,
+      },
+    ];
+
+    const matchingRooms = sampleRooms.filter(
+      (room) => room.capacity >= Number(capacity)
+    );
+
+    setRooms(matchingRooms);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div>
+      <header>
+        <h1>StudyRoom</h1>
+        <p>Study Room Research Prototype</p>
+      </header>
 
-      <div className="ticks"></div>
+      <main>
+        <section>
+          <h2>Find a Study Room</h2>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <form onSubmit={searchRooms}>
+            <label>
+              Date
+              <input
+                type="date"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                required
+              />
+            </label>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            <label>
+              Start Time
+              <input
+                type="time"
+                value={startTime}
+                onChange={(event) => setStartTime(event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              Duration
+              <select
+                value={duration}
+                onChange={(event) => setDuration(event.target.value)}
+              >
+                <option value="1">1 hour</option>
+                <option value="2">2 hours</option>
+                <option value="3">3 hours</option>
+              </select>
+            </label>
+
+            <label>
+              Number of People
+              <input
+                type="number"
+                min="1"
+                value={capacity}
+                onChange={(event) => setCapacity(event.target.value)}
+                required
+              />
+            </label>
+
+            <button type="submit">Search Rooms</button>
+          </form>
+        </section>
+
+        <section>
+          <h2>Available Rooms</h2>
+
+          {rooms.length === 0 ? (
+            <p>Enter your search information to find available rooms.</p>
+          ) : (
+            rooms.map((room) => (
+              <div key={room.id}>
+                <h3>Room {room.roomNumber}</h3>
+                <p>Location: {room.location}</p>
+                <p>Capacity: {room.capacity}</p>
+                <button>Reserve</button>
+              </div>
+            ))
+          )}
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
