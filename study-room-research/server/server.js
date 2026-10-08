@@ -23,8 +23,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/rooms", async (req, res) => {
+  const { date, startTime, duration, capacity } = req.query;
+
   try {
-    const result = await pool.query(`
+    let query = `
       SELECT
         rooms.id,
         rooms.room_number AS "roomNumber",
@@ -33,14 +35,44 @@ app.get("/api/rooms", async (req, res) => {
       FROM rooms
       JOIN locations
         ON rooms.location_id = locations.id
+    `;
+
+    const values = [];
+
+    if (date && startTime && duration && capacity) {
+      const start = new Date(`1970-01-01T${startTime}:00`);
+      const end = new Date(
+        start.getTime() + Number(duration) * 60 * 60 * 1000
+      );
+
+      const endTime = end.toTimeString().slice(0, 5);
+
+      values.push(date, startTime, endTime, Number(capacity));
+
+      query += `
+        WHERE rooms.capacity >= $4
+          AND rooms.id NOT IN (
+            SELECT room_id
+            FROM reservations
+            WHERE reservation_date = $1
+              AND start_time < $3
+              AND end_time > $2
+          )
+      `;
+    }
+
+    query += `
       ORDER BY rooms.id;
-    `);
+    `;
+
+    const result = await pool.query(query, values);
 
     res.json(result.rows);
   } catch (error) {
     console.error("Database error:", error);
+
     res.status(500).json({
-      error: "Unable to retrieve rooms from the database.",
+      error: "Unable to retrieve available rooms.",
     });
   }
 });
