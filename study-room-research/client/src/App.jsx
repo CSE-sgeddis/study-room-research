@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("2");
   const [capacity, setCapacity] = useState("");
-  const [rooms, setRooms] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [allRooms, setAllRooms] = useState([]); 
   const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [roomNumber, setRoomNumber] = useState("");
   const [locationId, setLocationId] = useState("1");
   const [roomCapacity, setRoomCapacity] = useState("");
@@ -16,12 +18,18 @@ function App() {
   const [myReservations, setMyReservations] = useState([]);
   const [reservationListMessage, setReservationListMessage] = useState("");
 
+  useEffect(() => {
+    loadAllRooms();
+    loadMyReservations();
+  }, []);
+
   const searchRooms = async (event) => {
     event.preventDefault();
 
     setError("");
     setReservationMessage("");
-    setRooms([]);
+    setSearchResults([]);
+    setHasSearched(false);
 
     try {
       const url = new URL("http://localhost:3000/api/rooms");
@@ -39,7 +47,8 @@ function App() {
 
       const availableRooms = await response.json();
 
-      setRooms(availableRooms);
+      setSearchResults(availableRooms);
+      setHasSearched(true);
     } catch (error) {
       console.error(error);
       setError("Unable to connect to the StudyRoom server.");
@@ -64,6 +73,24 @@ function App() {
     } catch (error) {
       console.error(error);
       setReservationListMessage("Unable to load your reservations.");
+    }
+  };
+
+  const loadAllRooms = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/rooms"
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to retrieve rooms.");
+      }
+
+      const rooms = await response.json();
+
+      setAllRooms(rooms);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -120,9 +147,7 @@ function App() {
       setRoomNumber("");
       setRoomCapacity("");
 
-      const roomsResponse = await fetch("http://localhost:3000/api/rooms");
-      const updatedRooms = await roomsResponse.json();
-      setRooms(updatedRooms);
+      loadAllRooms();
     } catch (error) {
       console.error(error);
       setAdminMessage("Unable to create room.");
@@ -148,9 +173,7 @@ const deleteRoom = async (roomId, roomNumber) => {
 
     setAdminMessage(`Room ${roomNumber} was deleted successfully.`);
 
-    const roomsResponse = await fetch("http://localhost:3000/api/rooms");
-    const updatedRooms = await roomsResponse.json();
-    setRooms(updatedRooms);
+    loadAllRooms();
   } catch (error) {
     console.error(error);
     setAdminMessage("Unable to delete room.");
@@ -261,12 +284,16 @@ const reserveRoom = async (roomId, roomNumber) => {
 
           {error && <p>{error}</p>}
 
-          {!error && rooms.length === 0 && (
+          {!error && searchResults.length === 0 && (
             <p>Enter your search information to find available rooms.</p>
           )}
 
+          {!error && hasSearched && searchResults.length === 0 && (
+            <p>No study rooms are available for the selected date and time.</p>
+          )}
+
           {!error &&
-            rooms.map((room) => (
+            searchResults.map((room) => (
               <div key={room.id}>
                 <h3>Room {room.roomNumber}</h3>
                 <p>Location: {room.location}</p>
@@ -369,7 +396,7 @@ const reserveRoom = async (roomId, roomNumber) => {
 
           <h3>Current Rooms</h3>
 
-          {rooms.map((room) => (
+          {allRooms.map((room) => (
             <div key={room.id}>
               <span>
                 Room {room.roomNumber} | {room.location} | Capacity: {room.capacity}
