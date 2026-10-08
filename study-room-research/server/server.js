@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = 3000;
@@ -7,26 +8,13 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
-const rooms = [
-  {
-    id: 1,
-    roomNumber: "101",
-    location: "Main Library",
-    capacity: 4,
-  },
-  {
-    id: 2,
-    roomNumber: "102",
-    location: "Main Library",
-    capacity: 6,
-  },
-  {
-    id: 3,
-    roomNumber: "201",
-    location: "Science Library",
-    capacity: 8,
-  },
-];
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "studyroom",
+  password: "mf9swqsfQ$$",
+  port: 5432,
+});
 
 app.get("/", (req, res) => {
   res.json({
@@ -34,8 +22,27 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/api/rooms", (req, res) => {
-  res.json(rooms);
+app.get("/api/rooms", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        rooms.id,
+        rooms.room_number AS "roomNumber",
+        locations.name AS location,
+        rooms.capacity
+      FROM rooms
+      JOIN locations
+        ON rooms.location_id = locations.id
+      ORDER BY rooms.id;
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({
+      error: "Unable to retrieve rooms from the database.",
+    });
+  }
 });
 
 app.listen(PORT, () => {
