@@ -13,6 +13,9 @@ function App() {
   const [adminMessage, setAdminMessage] = useState("");
   const [reservationMessage, setReservationMessage] = useState(""); 
 
+  const [myReservations, setMyReservations] = useState([]);
+  const [reservationListMessage, setReservationListMessage] = useState("");
+
   const searchRooms = async (event) => {
     event.preventDefault();
 
@@ -40,6 +43,53 @@ function App() {
     } catch (error) {
       console.error(error);
       setError("Unable to connect to the StudyRoom server.");
+    }
+  };
+
+  const loadMyReservations = async () => {
+    setReservationListMessage("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/reservations/user/1"
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to retrieve reservations.");
+      }
+
+      const reservations = await response.json();
+
+      setMyReservations(reservations);
+    } catch (error) {
+      console.error(error);
+      setReservationListMessage("Unable to load your reservations.");
+    }
+  };
+
+  const cancelReservation = async (reservationId) => {
+    setReservationListMessage("");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/reservations/${reservationId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to cancel reservation.");
+      }
+
+      setReservationListMessage("Reservation cancelled successfully.");
+
+      loadMyReservations();
+    } catch (error) {
+      console.error(error);
+      setReservationListMessage(error.message);
     }
   };
 
@@ -137,6 +187,8 @@ const reserveRoom = async (roomId, roomNumber) => {
     setReservationMessage(
       `Room ${roomNumber} reserved successfully!`
     );
+
+    loadMyReservations();
   } catch (error) {
     console.error(error);
     setReservationMessage(error.message);
@@ -224,6 +276,54 @@ const reserveRoom = async (roomId, roomNumber) => {
                 </button>
               </div>
             ))}
+        </section>
+        <section>
+          <h2>My Reservations</h2>
+
+          <button type="button" onClick={loadMyReservations}>
+            Load My Reservations
+          </button>
+
+          {reservationListMessage && <p>{reservationListMessage}</p>}
+
+          {myReservations.length === 0 && !reservationListMessage && (
+            <p>You currently have no reservations.</p>
+          )}
+
+          {myReservations.map((reservation) => (
+            <div key={reservation.id}>
+              <h3>Room {reservation.roomNumber}</h3>
+
+              <p>Location: {reservation.location}</p>
+
+              <p>
+                Date:{" "}
+                {new Date(reservation.reservationDate).toLocaleDateString()}
+              </p>
+
+              <p>
+                <p>
+                  Time:{" "}
+                  {new Date(`1970-01-01T${reservation.startTime}`).toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}{" "}
+                  -{" "}
+                  {new Date(`1970-01-01T${reservation.endTime}`).toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </p>
+
+              <button
+                type="button"
+                onClick={() => cancelReservation(reservation.id)}
+              >
+                Cancel Reservation
+              </button>
+            </div>
+          ))}
         </section>
         <section>
           <h2>Admin: Manage Study Rooms</h2>

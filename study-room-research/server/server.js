@@ -134,6 +134,72 @@ app.get("/api/reservations", async (req, res) => {
   }
 });
 
+app.get("/api/reservations/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        reservations.id,
+        reservations.room_id AS "roomId",
+        rooms.room_number AS "roomNumber",
+        locations.name AS location,
+        reservations.reservation_date AS "reservationDate",
+        reservations.start_time AS "startTime",
+        reservations.end_time AS "endTime"
+      FROM reservations
+      JOIN rooms
+        ON reservations.room_id = rooms.id
+      JOIN locations
+        ON rooms.location_id = locations.id
+      WHERE reservations.user_id = $1
+      ORDER BY reservations.reservation_date, reservations.start_time;
+      `,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database error:", error);
+
+    res.status(500).json({
+      error: "Unable to retrieve user reservations.",
+    });
+  }
+});
+
+app.delete("/api/reservations/:id", async (req, res) => {
+  const reservationId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `
+      DELETE FROM reservations
+      WHERE id = $1
+      RETURNING id;
+      `,
+      [reservationId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Reservation not found.",
+      });
+    }
+
+    res.json({
+      message: "Reservation cancelled successfully.",
+    });
+  } catch (error) {
+    console.error("Database error:", error);
+
+    res.status(500).json({
+      error: "Unable to cancel reservation.",
+    });
+  }
+});
+
 app.delete("/api/rooms/:id", async (req, res) => {
   const roomId = req.params.id;
 
