@@ -6,8 +6,6 @@ StudyRoom is a study room reservation system designed to help students find and 
 
 This repository contains my individual prototype for the CSCE 490 Research Milestone. The purpose of the project was to research potential technologies, learn how they work together, and build a functional application using the technologies I found most promising.
 
-> **Note:** This is my individual technology recommendation. The final technology stack will be selected by the team.
-
 ---
 
 ## Prototype
@@ -28,22 +26,6 @@ Administrators can:
 * Add study rooms
 * View existing rooms
 * Delete study rooms
-
-### Architecture
-
-```text
-React Frontend
-      |
-      | REST API
-      v
-Node.js + Express
-      |
-      | SQL
-      v
-PostgreSQL
-```
-
----
 
 ## Technologies Researched
 
@@ -84,11 +66,25 @@ MongoDB was considered as an alternative database. Its flexible document model c
 npm was used as the package manager for the JavaScript projects. It was used to install and manage project dependencies and run development scripts.
 
 ---
+### What I Learned
 
-## Technology Recommendation
+Building the prototype gave me practical experience with:
 
-Based on my research and prototype experience, my current individual recommendation is:
+-React state and interactive components
+-REST API requests
+-Express backend development
+-PostgreSQL database queries
+-Relational database design
+-Frontend/backend communication
+-Reservation conflict detection
+-Debugging across multiple application layers
+-Using npm to manage project dependencies
+-Using Git and GitHub throughout development
 
-| Component | Technology |
-| --------- | ---------- |
-| Fronten   |            |
+One of the most important parts of the prototype was implementing reservation availability. The backend checks existing reservations and prevents overlapping bookings while allowing reservations that begin when another reservation ends.
+
+### Research Conclusion
+
+Building this prototype allowed me to move beyond researching technologies in theory and gain practical experience using them together.
+
+Based on my research and implementation experience, React, Node.js/Express, and PostgreSQL are my current recommendations for the StudyRoom project. The final technology stack will be selected by the team after everyone's research is reviewed.
